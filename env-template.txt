@@ -1,10 +1,10 @@
 N8N_WEBHOOK_URL=https://test-n8n.thenextwilson.ai/webhook/send-message
-BACKEND_URL=http://localhost:3001/api
-API_ID=849275af-7f1d-4b86-92c9-c92c1b8d39fd
+BACKEND_URL=https://electro-scheppers.onrender.com
+API_ID=e1f3a707-682a-4aaf-827c-eae4a708fe97
 PORT=3001
 BOTPRESS_BOT_ID=d4596de1-2d11-4b09-9cd4-0299b670bf95
 BOTPRESS_WORKSPACE_ID=wkspace_01JYK112PC1APADWSHEV9BGY40
-BOTPRESS_BEARER_TOKEN=bp_pat_3naFtS8QTg7j02nXJGgdUOZfDZKYrAW4zLCe
+BOTPRESS_BEARER_TOKEN=bp_pat_0YxR2E72SOKc4aBCtTjBWhQFWjaRRKLrMaYi
 BOTPRESS_KNOWLEDGE_BASE_ID=kb-0329b5335c
 BOTPRESS_FILES_API_URL=https://api.botpress.cloud/v1/files
 NEXT_PUBLIC_BACKEND_URL=https://electro-scheppers.onrender.com
