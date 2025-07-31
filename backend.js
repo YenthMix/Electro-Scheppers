@@ -560,7 +560,7 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
     // Register file and get upload URL
     const timestamp = Date.now();
     const filename = req.file.originalname;
-    const fileKey = `kb-${knowledgeBaseId}/${timestamp}-${filename}`;
+    const fileKey = `${knowledgeBaseId}/${timestamp}-${filename}`;
     const title = req.body.title || filename;
     
     const registerRes = await axios.put('https://api.botpress.cloud/v1/files', {
