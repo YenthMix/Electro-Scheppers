@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "backend": "node backend.js",
+    "render": "node backend.js",
     "dev:full": "concurrently \"npm run backend\" \"npm run dev\""
   },
   "dependencies": {
