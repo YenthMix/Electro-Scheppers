@@ -18,6 +18,7 @@ const API_ID = process.env.API_ID;
 const BOTPRESS_API_TOKEN = process.env.BOTPRESS_BEARER_TOKEN;
 const BOT_ID = process.env.BOTPRESS_BOT_ID;
 const WORKSPACE_ID = process.env.BOTPRESS_WORKSPACE_ID;
+const KNOWLEDGE_BASE_ID = process.env.BOTPRESS_KNOWLEDGE_BASE_ID;
 const BASE_URL = `https://chat.botpress.cloud/${API_ID}`;
 
 // Configure CORS
@@ -553,14 +554,14 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
       }
     } catch (error) {
       console.log(`❌ Failed to get/create knowledge base:`, error.response?.status || error.message);
-      knowledgeBaseId = process.env.BOTPRESS_KNOWLEDGE_BASE_ID;
+      knowledgeBaseId = KNOWLEDGE_BASE_ID;
       console.log(`🔄 Falling back to environment knowledge base ID: ${knowledgeBaseId}`);
     }
 
     // Register file and get upload URL
     const timestamp = Date.now();
     const filename = req.file.originalname;
-    const fileKey = `${knowledgeBaseId}/${timestamp}-${filename}`;
+    const fileKey = `kb-${knowledgeBaseId}/${timestamp}-${filename}`;
     const title = req.body.title || filename;
     
     const registerRes = await axios.put('https://api.botpress.cloud/v1/files', {
@@ -652,7 +653,6 @@ app.get('/api/documents', async (req, res) => {
       params: {
         'tags[category]': 'support',
         'tags[source]': 'knowledge-base',
-        'tags[kbId]': process.env.BOTPRESS_KNOWLEDGE_BASE_ID,
         limit: 100
       }
     });
@@ -700,41 +700,12 @@ app.get('/health', async (req, res) => {
   res.json({ 
     status: 'healthy', 
     timestamp: Date.now(),
-    knowledgeBaseId: process.env.BOTPRESS_KNOWLEDGE_BASE_ID,
     activeConversations: {
       botMessages: botMessages.size,
       userMessages: userMessages.size,
       totalBotMessages: Array.from(botMessages.values()).reduce((total, conv) => total + conv.messages.length, 0)
     }
   });
-});
-
-// Knowledge base status check
-app.get('/api/kb-status', async (req, res) => {
-  try {
-    const kbId = process.env.BOTPRESS_KNOWLEDGE_BASE_ID;
-    console.log(`🔍 Checking knowledge base status for: ${kbId}`);
-    
-    const kbResponse = await axios.get(`https://api.botpress.cloud/v1/knowledge-bases/${kbId}`, {
-      headers: {
-        'Authorization': `Bearer ${BOTPRESS_API_TOKEN}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    res.json({ 
-      success: true, 
-      knowledgeBase: kbResponse.data,
-      environmentId: kbId
-    });
-  } catch (error) {
-    console.error('Knowledge base status check failed:', error.response?.status || error.message);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message,
-      environmentId: process.env.BOTPRESS_KNOWLEDGE_BASE_ID
-    });
-  }
 });
 
 // Debug endpoint to clear all state
