@@ -80,8 +80,8 @@ body {
   position: fixed;
   bottom: 120px;
   right: 30px;
-  width: 380px;
-  height: 500px;
+  width: 480px;
+  height: 600px;
   background: #ffffff;
   border-radius: 20px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
@@ -408,7 +408,7 @@ body {
 @media (max-width: 768px) {
   .chat-window {
     width: calc(100vw - 40px);
-    height: calc(100vh - 140px);
+    height: calc(100vh - 120px);
     bottom: 100px;
     right: 20px;
     left: 20px;
@@ -427,7 +427,7 @@ body {
 @media (max-width: 480px) {
   .chat-window {
     width: calc(100vw - 20px);
-    height: calc(100vh - 120px);
+    height: calc(100vh - 100px);
     bottom: 80px;
     right: 10px;
     left: 10px;
