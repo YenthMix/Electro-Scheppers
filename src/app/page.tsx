@@ -195,7 +195,12 @@ export default function Home() {
             console.log(`✅ Received ${botData.messages.length} bot messages at ${pollTimestamp}:`, botData.messages);
             
             // Add new messages that haven't been displayed yet
-            const newMessages = botData.messages.filter((msg: any) => !displayedMessageIds.has(msg.id));
+            const newMessages = botData.messages
+              .filter((msg: any) => !displayedMessageIds.has(msg.id))
+              .map((msg: any) => ({
+                ...msg,
+                isBot: true // Ensure all bot messages are marked as bot messages
+              }));
             
             if (newMessages.length > 0) {
               setMessages(prev => [...prev, ...newMessages]);
@@ -285,6 +290,9 @@ export default function Home() {
   const toggleChat = () => {
     setIsChatOpen(!isChatOpen);
   };
+
+  // Keep chat state persistent - don't reset messages when closing
+  // Messages will only reset when the page is refreshed
 
   return (
     <div className="elektro-scheppers-chat">
