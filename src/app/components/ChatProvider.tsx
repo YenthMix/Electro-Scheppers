@@ -192,10 +192,11 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
       return;
     }
 
-    const maxAttempts = 30;
+    const maxAttempts = 60; // Increased from 30 to 60 attempts
     let attempts = 0;
     let consecutiveEmptyPolls = 0;
-    const maxEmptyPolls = 12;
+    const maxEmptyPolls = 20; // Increased from 12 to 20
+    let lastMessageCount = 0;
 
     const poll = async () => {
       try {
@@ -208,6 +209,14 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
           
           if (botData.messages && botData.messages.length > 0) {
             console.log(`✅ Received ${botData.messages.length} bot messages at ${pollTimestamp}:`, botData.messages);
+            
+            // Check if we have new messages
+            const currentMessageCount = botData.messages.length;
+            if (currentMessageCount > lastMessageCount) {
+              // We're making progress, reset consecutive empty polls
+              consecutiveEmptyPolls = 0;
+              lastMessageCount = currentMessageCount;
+            }
             
             // Add new messages that haven't been displayed yet
             const newMessages = botData.messages
@@ -235,14 +244,30 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
         
         attempts++;
         
-        if (attempts >= maxAttempts || consecutiveEmptyPolls >= maxEmptyPolls) {
-          console.log(`🛑 Stopping poll after ${attempts} attempts, ${consecutiveEmptyPolls} consecutive empty polls`);
+        // More lenient stopping conditions
+        if (attempts >= maxAttempts) {
+          console.log(`🛑 Stopping poll after ${attempts} attempts (max reached)`);
+          setIsLoading(false);
+          // Add a timeout message
+          const timeoutMessage = {
+            id: `timeout-${Date.now()}`,
+            text: "Het duurt langer dan verwacht om een antwoord te krijgen. Probeer uw vraag opnieuw te stellen of neem contact op met Elektro Scheppers.",
+            isBot: true,
+            timestamp: Date.now()
+          };
+          setMessages(prev => [...prev, timeoutMessage]);
+          return;
+        }
+        
+        if (consecutiveEmptyPolls >= maxEmptyPolls) {
+          console.log(`🛑 Stopping poll after ${consecutiveEmptyPolls} consecutive empty polls`);
           setIsLoading(false);
           return;
         }
         
-        // Continue polling
-        setTimeout(poll, 2000);
+        // Continue polling with longer intervals for longer waits
+        const pollInterval = attempts < 20 ? 2000 : 3000; // Slower polling after 20 attempts
+        setTimeout(poll, pollInterval);
         
       } catch (error) {
         console.error('Error polling for bot response:', error);
@@ -251,10 +276,19 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
         if (attempts >= maxAttempts) {
           console.log(`🛑 Stopping poll after ${attempts} attempts due to errors`);
           setIsLoading(false);
+          // Add an error message
+          const errorMessage = {
+            id: `error-${Date.now()}`,
+            text: "Er is een probleem opgetreden bij het ophalen van het antwoord. Probeer het opnieuw.",
+            isBot: true,
+            timestamp: Date.now()
+          };
+          setMessages(prev => [...prev, errorMessage]);
           return;
         }
         
-        setTimeout(poll, 2000);
+        const pollInterval = attempts < 20 ? 2000 : 3000;
+        setTimeout(poll, pollInterval);
       }
     };
     
