@@ -402,35 +402,7 @@ body {
   background: #c63528;
 }
 
-/* Info Button */
-.info-button {
-  position: fixed;
-  left: 30px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: #de3f30;
-  color: #ffffff;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 25px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  z-index: 1000;
-  box-shadow: 0 4px 12px rgba(222, 63, 48, 0.3);
-  font-family: 'Montserrat', sans-serif;
-}
 
-.info-button:hover {
-  background: #c63528;
-  transform: translateY(-50%) translateX(-2px);
-  box-shadow: 0 6px 16px rgba(222, 63, 48, 0.4);
-}
-
-.info-button:active {
-  transform: translateY(-50%) translateX(0);
-}
 
 /* Responsive design */
 @media (max-width: 768px) {
@@ -449,11 +421,7 @@ body {
     height: 60px;
   }
   
-  .info-button {
-    left: 20px;
-    padding: 10px 16px;
-    font-size: 12px;
-  }
+
 }
 
 @media (max-width: 480px) {
@@ -490,11 +458,62 @@ body {
     font-size: 8px;
   }
   
-  .info-button {
-    left: 15px;
-    padding: 8px 12px;
-    font-size: 11px;
-  }
+
+}
+
+/* Homepage styles */
+.elektro-scheppers-home {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  padding: 20px;
+}
+
+.home-content {
+  text-align: center;
+  max-width: 600px;
+}
+
+.welcome-section h1 {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 2.5rem;
+  color: #de3f30;
+  margin-bottom: 1rem;
+}
+
+.welcome-section p {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 1.2rem;
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.info-button-home {
+  background: #de3f30;
+  color: #ffffff;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.info-button-home:hover {
+  background: #c63528;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(222, 63, 48, 0.3);
 }
 
 /* Legacy styles for other pages */

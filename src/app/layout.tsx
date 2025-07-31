@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import ChatProvider from "./components/ChatProvider";
 
 export const metadata: Metadata = {
-  title: "Botpress ChatBot",
-  description: "Chat with Botpress AI",
+  title: "Elektro Scheppers - Chat Support",
+  description: "Chat met Saar van Elektro Scheppers",
 };
 
 export default function RootLayout({
@@ -12,9 +13,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="nl">
       <body className="antialiased">
-        {children}
+        <ChatProvider>
+          {children}
+        </ChatProvider>
       </body>
     </html>
   );

@@ -34,7 +34,7 @@ export default function InfoPage() {
     fetchDocuments();
   }, []);
 
-  const handleBackToChat = () => {
+  const handleBackToHome = () => {
     router.push('/');
   };
 
@@ -92,10 +92,10 @@ export default function InfoPage() {
   return (
     <div className="upload-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
       <button 
-        onClick={handleBackToChat}
+        onClick={handleBackToHome}
         className="back-button"
       >
-        ← Back to Chat
+        ← Terug naar Home
       </button>
 
       <div style={{ display: 'flex', flexDirection: 'row', gap: 40, alignItems: 'flex-start', justifyContent: 'center', width: '100%' }}>
