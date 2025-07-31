@@ -21,7 +21,7 @@ export default function Home() {
             onClick={handleNavigateToInfo}
             className="info-button-home"
           >
-            ℹ️ Meer Informatie
+            Upload Documenten
           </button>
         </div>
       </div>
