@@ -27,6 +27,7 @@ export default function Home() {
   const [userId, setUserId] = useState<string | null>(null);
   const [userKey, setUserKey] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   
   // Ref for auto-scrolling to bottom
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -189,110 +190,82 @@ export default function Home() {
         
         if (botResponseRes.ok) {
           const botData = await botResponseRes.json();
-          console.log(`📡 Backend polling response at ${pollTimestamp}:`, botData);
           
-          if (botData.success && botData.messages) {
-            const receivedTimestamp = new Date().toISOString();
-            console.log(`✅ GOT ${botData.messages.length} BOT MESSAGES at ${receivedTimestamp}`);
+          if (botData.messages && botData.messages.length > 0) {
+            console.log(`✅ Received ${botData.messages.length} bot messages at ${pollTimestamp}:`, botData.messages);
             
-            // Log each message received
-            botData.messages.forEach((msg: any, idx: number) => {
-              console.log(`   Message ${idx + 1}: "${msg.text || '[IMAGE]'}" ${msg.image ? '[+IMAGE: ' + msg.image.substring(0, 50) + '...]' : ''} (received: ${msg.receivedAt})`);
-            });
+            // Add new messages that haven't been displayed yet
+            const newMessages = botData.messages.filter((msg: any) => !displayedMessageIds.has(msg.id));
             
-            // Add each message separately to the chat in timestamp order
-            const botMessages = botData.messages.map((msg: any) => ({
-              id: msg.id,
-              text: msg.text,
-              image: msg.image,
-              isBot: true,
-              receivedAt: msg.receivedAt,
-              timestamp: msg.timestamp
-            }));
-            
-            setMessages(prev => [...prev, ...botMessages]);
-            console.log(`💬 ${botMessages.length} bot messages added to chat interface at ${receivedTimestamp}`);
-            
-            // Stop polling since we received the complete set of messages from backend
-            setIsLoading(false);
-            console.log(`✅ All messages received and displayed - stopping polling`);
-            return;
-          } else if (botData.message === 'Still collecting messages from n8n') {
-            const timeoutActive = botData.timeoutActive ? ' (timeout active)' : ' (no timeout)';
-            console.log(`⏳ Backend still collecting messages from n8n (${botData.messagesReceived || 0} received so far)${timeoutActive}... continuing to wait`);
-            consecutiveEmptyPolls = 0; // Reset counter since backend is actively collecting
-            attempts = Math.max(0, attempts - 1); // Reduce attempts since we're making progress
+            if (newMessages.length > 0) {
+              setMessages(prev => [...prev, ...newMessages]);
+              setDisplayedMessageIds(prev => new Set([...prev, ...newMessages.map((msg: any) => msg.id)]));
+              setIsLoading(false);
+              return; // Success, stop polling
+            } else {
+              consecutiveEmptyPolls++;
+            }
           } else {
-            console.log(`⏳ No bot messages available yet at ${new Date().toISOString()}, continuing to poll...`);
             consecutiveEmptyPolls++;
           }
         } else {
-          console.log(`❌ Backend polling request failed with status: ${botResponseRes.status}`);
+          console.error(`❌ Bot response poll failed: ${botResponseRes.status}`);
+          consecutiveEmptyPolls++;
         }
         
-        // No bot response available yet, try again
         attempts++;
         
-        // Stop polling if we've tried too many times OR if we've had too many consecutive empty polls
-        if (attempts >= maxAttempts) {
-          const timeoutMessage = {
-            id: `timeout-${Date.now()}`,
-            text: "I'm taking longer than usual to respond. Please try sending your message again.",
-            isBot: true
-          };
-          setMessages(prev => [...prev, timeoutMessage]);
+        if (attempts >= maxAttempts || consecutiveEmptyPolls >= maxEmptyPolls) {
+          console.log(`🛑 Stopping poll after ${attempts} attempts, ${consecutiveEmptyPolls} consecutive empty polls`);
           setIsLoading(false);
-        } else if (consecutiveEmptyPolls >= maxEmptyPolls) {
-          // We've received some messages but no new ones for a while - stop polling
-          console.log(`✅ Stopping polling after ${consecutiveEmptyPolls} consecutive empty polls - assuming all messages received`);
-          setIsLoading(false);
-        } else {
-          setTimeout(poll, 1000); // Smart polling - backend tells us when it's done
+          return;
         }
+        
+        // Continue polling
+        setTimeout(poll, 2000);
         
       } catch (error) {
+        console.error('Error polling for bot response:', error);
         attempts++;
-        consecutiveEmptyPolls++;
         
         if (attempts >= maxAttempts) {
-          const errorMessage = {
-            id: `poll-error-${Date.now()}`,
-            text: "I'm having trouble connecting right now. Please try again.",
-            isBot: true
-          };
-          setMessages(prev => [...prev, errorMessage]);
+          console.log(`🛑 Stopping poll after ${attempts} attempts due to errors`);
           setIsLoading(false);
-        } else if (consecutiveEmptyPolls >= maxEmptyPolls) {
-          console.log(`✅ Stopping polling after ${consecutiveEmptyPolls} consecutive errors/empty polls`);
-          setIsLoading(false);
-        } else {
-          setTimeout(poll, 1000); // Smart polling - backend tells us when it's done
+          return;
         }
+        
+        setTimeout(poll, 2000);
       }
     };
-
-    const startPollTimestamp = new Date().toISOString();
-    console.log(`🚀 Starting to poll for bot response at ${startPollTimestamp} in 2 seconds...`);
-    setTimeout(poll, 2000); // Start polling after brief delay to let first message arrive
+    
+    poll();
   };
 
   const handleSendMessage = async () => {
-    if (inputValue.trim() === '' || isLoading || !isConnected) return;
+    if (!inputValue.trim() || isLoading || !isConnected) return;
     
     const userMessage = inputValue.trim();
     setInputValue('');
-    setIsLoading(true);
     
-    const userMessageObj = { id: `user-${Date.now()}`, text: userMessage, isBot: false };
+    // Add user message immediately
+    const userMessageObj = {
+      id: `user-${Date.now()}`,
+      text: userMessage,
+      isBot: false,
+      timestamp: Date.now()
+    };
+    
     setMessages(prev => [...prev, userMessageObj]);
+    setIsLoading(true);
     
     try {
       await sendToBotpress(userMessage);
     } catch (error) {
-      const errorMessage = { 
-        id: `error-${Date.now()}`, 
-        text: "Sorry, I'm having trouble connecting to the bot right now. Please try again later.", 
-        isBot: true 
+      console.error('Failed to send message:', error);
+      const errorMessage = {
+        id: `error-${Date.now()}`,
+        text: "Sorry, I couldn't send your message. Please try again.",
+        isBot: true
       };
       setMessages(prev => [...prev, errorMessage]);
       setIsLoading(false);
@@ -309,89 +282,124 @@ export default function Home() {
     router.push('/info');
   };
 
+  const toggleChat = () => {
+    setIsChatOpen(!isChatOpen);
+  };
+
   return (
-    <div className="chatbot-container">
-      <div className="chatbot-header">
-        <h1>💬 Botpress ChatBot</h1>
-        <div className={`connection-status ${isConnected ? 'connected' : 'connecting'}`}>
-          {isConnected ? '🟢 Connected to Botpress' : '🟡 Connecting...'}
+    <div className="elektro-scheppers-chat">
+      {/* Floating Chat Bubble */}
+      <div className={`chat-bubble ${isChatOpen ? 'open' : ''}`} onClick={toggleChat}>
+        <div className="bubble-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H6L4 18V4H20V16Z" fill="currentColor"/>
+            <path d="M7 9H17V11H7V9ZM7 12H14V14H7V12Z" fill="currentColor"/>
+          </svg>
+        </div>
+        <div className="bubble-badge">1</div>
+      </div>
+
+      {/* Chat Window */}
+      <div className={`chat-window ${isChatOpen ? 'open' : ''}`}>
+        <div className="chat-header">
+          <div className="chat-header-content">
+            <div className="chat-logo">
+              <div className="logo-mark">
+                <div className="logo-s"></div>
+                <div className="logo-square"></div>
+              </div>
+              <div className="logo-text">
+                <span>ELEKTRO</span>
+                <span>SCHEPPERS</span>
+              </div>
+            </div>
+            <div className="chat-title">Chat Support</div>
+            <div className={`connection-status ${isConnected ? 'connected' : 'connecting'}`}>
+              {isConnected ? '🟢 Verbonden' : '🟡 Verbinden...'}
+            </div>
+          </div>
+          <button className="close-button" onClick={toggleChat}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" fill="currentColor"/>
+            </svg>
+          </button>
+        </div>
+        
+        <div className="chat-messages">
+          {messages.map((message) => (
+            <div 
+              key={message.id} 
+              className={`message ${message.isBot ? 'bot-message' : 'user-message'}`}
+            >
+              <div className="message-content">
+                {message.text && <div className="message-text">{message.text}</div>}
+                {message.image && (
+                  <div className="message-image">
+                    <img 
+                      src={message.image} 
+                      alt="Chat image" 
+                      onError={(e) => {
+                        console.error('Failed to load image:', message.image);
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+          {isLoading && (
+            <div className="message bot-message">
+              <div className="message-content loading">
+                <div className="typing-indicator">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+                <div style={{ fontSize: '11px', marginTop: '5px', opacity: 0.7 }}>
+                  Bot is responding...
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Invisible element to scroll to */}
+          <div ref={messagesEndRef} />
+        </div>
+        
+        <div className="chat-input">
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder={
+              !isConnected 
+                ? "Verbinden met Botpress..." 
+                : isLoading 
+                  ? "Bot is typing..." 
+                  : "Type uw bericht hier..."
+            }
+            className="message-input"
+            disabled={isLoading || !isConnected}
+          />
+          <button 
+            onClick={handleSendMessage} 
+            className={`send-button ${isLoading ? 'loading' : ''}`}
+            disabled={isLoading || !isConnected}
+          >
+            {!isConnected ? 'Verbinden...' : isLoading ? '...' : 'Versturen'}
+          </button>
         </div>
       </div>
-      
-      {/* Navigation button */}
+
+      {/* Info Button */}
       <button 
         onClick={handleNavigateToInfo}
-        className="nav-button"
+        className="info-button"
       >
         ℹ️ Info
       </button>
-      
-      <div className="chatbot-messages">
-        {messages.map((message) => (
-          <div 
-            key={message.id} 
-            className={`message ${message.isBot ? 'bot-message' : 'user-message'}`}
-          >
-            <div className="message-content">
-              {message.text && <div className="message-text">{message.text}</div>}
-              {message.image && (
-                <div className="message-image">
-                  <img 
-                    src={message.image} 
-                    alt="Chat image" 
-                    onError={(e) => {
-                      console.error('Failed to load image:', message.image);
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-        {isLoading && (
-          <div className="message bot-message">
-            <div className="message-content loading">
-              <div className="typing-indicator">
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
-              <div style={{ fontSize: '11px', marginTop: '5px', opacity: 0.7 }}>
-                Bot is responding...
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {/* Invisible element to scroll to */}
-        <div ref={messagesEndRef} />
-      </div>
-      
-      <div className="chatbot-input">
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyPress={handleKeyPress}
-          placeholder={
-            !isConnected 
-              ? "Connecting to Botpress..." 
-              : isLoading 
-                ? "Bot is typing..." 
-                : "Type your message here..."
-          }
-          className="message-input"
-          disabled={isLoading || !isConnected}
-        />
-        <button 
-          onClick={handleSendMessage} 
-          className={`send-button ${isLoading ? 'loading' : ''}`}
-          disabled={isLoading || !isConnected}
-        >
-          {!isConnected ? 'Connecting...' : isLoading ? '...' : 'Send'}
-        </button>
-      </div>
     </div>
   );
 }
