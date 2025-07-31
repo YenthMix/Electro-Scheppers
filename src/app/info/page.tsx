@@ -134,7 +134,7 @@ export default function InfoPage() {
 
         {/* File list on the right */}
         <div style={{ minWidth: 320, maxWidth: 400, background: 'white', borderRadius: 20, boxShadow: '0 8px 24px rgba(244,143,177,0.12)', padding: 24, height: 'fit-content' }}>
-          <h2 style={{ color: '#e91e63', fontSize: 22, marginBottom: 16 }}>📚 Documents</h2>
+          <h2 style={{ color: '#de3f30', fontSize: 22, marginBottom: 16 }}>📚 Documents</h2>
           {loadingDocs ? (
             <div>Loading documents...</div>
           ) : documents.length === 0 ? (
@@ -142,9 +142,26 @@ export default function InfoPage() {
           ) : (
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
               {documents.map((doc: any) => (
-                <li key={doc.id || doc.fileId || doc.key} style={{ marginBottom: 12, padding: 10, border: '1px solid #f8bbd9', borderRadius: 10, background: '#fce4ec', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div>
-                    <div style={{ fontWeight: 600 }}>{
+                <li key={doc.id || doc.fileId || doc.key} style={{ 
+                  marginBottom: 12, 
+                  padding: 12, 
+                  border: '1px solid #f4b928', 
+                  borderRadius: 10, 
+                  background: '#fff9e6', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'space-between',
+                  wordWrap: 'break-word',
+                  overflow: 'hidden'
+                }}>
+                  <div style={{ flex: 1, minWidth: 0, marginRight: 10 }}>
+                    <div style={{ 
+                      fontWeight: 600, 
+                      fontSize: '14px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}>{
                       (() => {
                         const key = doc.key || '';
                         const match = key.match(/^kb-[^/]+\/\d+-/);
@@ -154,13 +171,25 @@ export default function InfoPage() {
                         return doc.name || doc.title || doc.fileName || key || doc.id;
                       })()
                     }</div>
-                    {doc.createdAt && <div style={{ fontSize: 12, color: '#888' }}>Added: {new Date(doc.createdAt).toLocaleString()}</div>}
+                    {doc.createdAt && <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>Added: {new Date(doc.createdAt).toLocaleString()}</div>}
                   </div>
                   <button
-                    style={{ background: 'none', border: 'none', color: '#e91e63', fontSize: 22, cursor: 'pointer', marginLeft: 10 }}
+                    style={{ 
+                      background: 'none', 
+                      border: 'none', 
+                      color: '#de3f30', 
+                      fontSize: 20, 
+                      cursor: 'pointer', 
+                      flexShrink: 0,
+                      padding: '4px 8px',
+                      borderRadius: '4px',
+                      transition: 'background-color 0.2s'
+                    }}
                     title="Delete file"
                     onClick={() => setDeleteTarget(doc)}
                     disabled={deleting}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(222, 63, 48, 0.1)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
                     ×
                   </button>
@@ -186,14 +215,14 @@ export default function InfoPage() {
                 <button
                   onClick={() => handleDelete(deleteTarget)}
                   disabled={deleting}
-                  style={{ background: '#e91e63', color: 'white', border: 'none', borderRadius: 8, padding: '8px 24px', fontWeight: 600, marginRight: 16, cursor: 'pointer', fontSize: 16 }}
+                  style={{ background: '#de3f30', color: 'white', border: 'none', borderRadius: 8, padding: '8px 24px', fontWeight: 600, marginRight: 16, cursor: 'pointer', fontSize: 16 }}
                 >
                   {deleting ? 'Deleting...' : 'Yes'}
                 </button>
                 <button
                   onClick={() => setDeleteTarget(null)}
                   disabled={deleting}
-                  style={{ background: '#f8bbd9', color: '#e91e63', border: 'none', borderRadius: 8, padding: '8px 24px', fontWeight: 600, cursor: 'pointer', fontSize: 16 }}
+                  style={{ background: '#f4b928', color: '#000000', border: 'none', borderRadius: 8, padding: '8px 24px', fontWeight: 600, cursor: 'pointer', fontSize: 16 }}
                 >
                   No
                 </button>
