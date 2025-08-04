@@ -39,9 +39,6 @@ export const useChat = () => {
 
 export default function ChatProvider({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
-  const [chatSettings, setChatSettings] = useState<any>(null);
-  const [isChatManagerPage, setIsChatManagerPage] = useState(false);
-  
   const [messages, setMessages] = useState<Message[]>([
     { id: 'welcome-1', text: "Hallo! Hoe kan ik u vandaag helpen?", isBot: true }
   ]);
@@ -55,14 +52,13 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [lastReadMessageId, setLastReadMessageId] = useState('welcome-1');
+  const [chatSettings, setChatSettings] = useState<any>(null);
   
   // Ref for auto-scrolling to bottom
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Check if we're on chat-manager page
-  useEffect(() => {
-    setIsChatManagerPage(window.location.pathname === '/chat-manager');
-  }, []);
+  // Check if we're on the chat management page
+  const isOnChatBeherenPage = typeof window !== 'undefined' && window.location.pathname === '/chat-beheren';
 
   // Load chat settings from localStorage
   useEffect(() => {
@@ -71,19 +67,6 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
       setChatSettings(JSON.parse(savedSettings));
     }
   }, []);
-
-  // Apply chat settings when they change
-  useEffect(() => {
-    if (chatSettings) {
-      const root = document.documentElement;
-      root.style.setProperty('--chat-primary-color', chatSettings.primaryColor || '#de3f30');
-      root.style.setProperty('--chat-secondary-color', chatSettings.secondaryColor || '#f4b928');
-      root.style.setProperty('--chat-background-color', chatSettings.backgroundColor || '#ffffff');
-      root.style.setProperty('--chat-text-color', chatSettings.textColor || '#333333');
-      root.style.setProperty('--chat-bubble-color', chatSettings.bubbleColor || '#de3f30');
-      root.style.setProperty('--chat-bubble-text-color', chatSettings.bubbleTextColor || '#ffffff');
-    }
-  }, [chatSettings]);
 
   // Only initialize chat if user is authenticated
   useEffect(() => {
@@ -131,6 +114,19 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
       }
     }
   }, [messages, lastReadMessageId, isChatOpen]);
+
+  // Update welcome message when settings change
+  useEffect(() => {
+    if (chatSettings?.welcomeMessage && messages.length > 0) {
+      const firstMessage = messages[0];
+      if (firstMessage.id === 'welcome-1') {
+        setMessages(prev => [
+          { ...prev[0], text: chatSettings.welcomeMessage },
+          ...prev.slice(1)
+        ]);
+      }
+    }
+  }, [chatSettings?.welcomeMessage]);
 
   const initializeChatAPI = async () => {
     try {
@@ -427,9 +423,16 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
     <ChatContext.Provider value={contextValue}>
       {children}
       
-             {/* Floating Chat Bubble - Only show when authenticated and not on chat-manager page */}
-       {isAuthenticated && !isChatManagerPage && (
-         <div className={`chat-bubble ${isChatOpen ? 'open' : ''}`} onClick={toggleChat}>
+             {/* Floating Chat Bubble - Only show when authenticated and not on chat management page */}
+       {isAuthenticated && !isOnChatBeherenPage && (
+         <div 
+           className={`chat-bubble ${isChatOpen ? 'open' : ''}`} 
+           onClick={toggleChat}
+           style={{
+             backgroundColor: chatSettings?.bubbleColor || '#de3f30',
+             color: chatSettings?.bubbleTextColor || '#ffffff'
+           }}
+         >
            <div className="bubble-icon">
              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H6L4 18V4H20V16Z" fill="currentColor"/>
@@ -437,19 +440,48 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
              </svg>
            </div>
            {isLoading && (
-             <div className="bubble-badge loading">...</div>
+             <div 
+               className="bubble-badge loading"
+               style={{
+                 backgroundColor: chatSettings?.secondaryColor || '#f4b928',
+                 color: chatSettings?.textColor || '#000000'
+               }}
+             >
+               ...
+             </div>
            )}
            {!isLoading && unreadCount > 0 && (
-             <div className="bubble-badge">{unreadCount}</div>
+             <div 
+               className="bubble-badge"
+               style={{
+                 backgroundColor: chatSettings?.secondaryColor || '#f4b928',
+                 color: chatSettings?.textColor || '#000000'
+               }}
+             >
+               {unreadCount}
+             </div>
            )}
          </div>
        )}
 
-             {/* Chat Window - Only show when authenticated and not on chat-manager page */}
-       {isAuthenticated && !isChatManagerPage && (
-        <div className={`chat-window ${isChatOpen ? 'open' : ''}`}>
-        <div className="chat-header">
-          <div className="chat-header-content">
+             {/* Chat Window - Only show when authenticated and not on chat management page */}
+       {isAuthenticated && !isOnChatBeherenPage && (
+         <div 
+           className={`chat-window ${isChatOpen ? 'open' : ''}`}
+           style={{
+             backgroundColor: chatSettings?.backgroundColor || '#ffffff',
+             color: chatSettings?.textColor || '#333333',
+             borderColor: chatSettings?.primaryColor || '#de3f30'
+           }}
+         >
+                 <div 
+           className="chat-header"
+           style={{
+             backgroundColor: chatSettings?.primaryColor || '#de3f30',
+             color: chatSettings?.bubbleTextColor || '#ffffff'
+           }}
+         >
+           <div className="chat-header-content">
             <div className="chat-logo">
               <div className="logo-mark">
                 <div className="logo-s"></div>
@@ -460,7 +492,7 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
                 <span>SCHEPPERS</span>
               </div>
             </div>
-            <div className="chat-title">Saar</div>
+                         <div className="chat-title">{chatSettings?.botName || 'Saar'}</div>
             <div className={`connection-status ${isConnected ? 'connected' : 'connecting'}`}>
               {isConnected ? '🟢 Verbonden' : '🟡 Verbinden...'}
             </div>
