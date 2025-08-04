@@ -7,20 +7,21 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, isBackendConnected, isCheckingBackend } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    // Simulate loading delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    const success = login(usernameOrEmail, password);
-    
-    if (!success) {
-      setError('Ongeldige gebruikersnaam/email of wachtwoord');
+    try {
+      const success = await login(usernameOrEmail, password);
+      
+      if (!success) {
+        setError('Ongeldige gebruikersnaam/email of wachtwoord');
+      }
+    } catch (error) {
+      setError('Kan geen verbinding maken met de server. Probeer het opnieuw.');
     }
     
     setIsLoading(false);
@@ -77,12 +78,30 @@ export default function LoginPage() {
             </div>
           )}
 
+          {isCheckingBackend && (
+            <div className="backend-status checking">
+              🔄 Verbinden met server...
+            </div>
+          )}
+          
+          {!isCheckingBackend && !isBackendConnected && (
+            <div className="backend-status disconnected">
+              ❌ Geen verbinding met server
+            </div>
+          )}
+          
+          {!isCheckingBackend && isBackendConnected && (
+            <div className="backend-status connected">
+              ✅ Verbonden met server
+            </div>
+          )}
+
           <button 
             type="submit" 
             className="login-button"
-            disabled={isLoading}
+            disabled={isLoading || isCheckingBackend || !isBackendConnected}
           >
-            {isLoading ? 'Inloggen...' : 'Inloggen'}
+            {isLoading ? 'Inloggen...' : isCheckingBackend ? 'Verbinden...' : 'Inloggen'}
           </button>
         </form>
       </div>

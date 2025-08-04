@@ -96,7 +96,8 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     if (messages.length > 0) {
       const lastMessage = messages[messages.length - 1];
-      if (lastMessage.id !== lastReadMessageId && !isChatOpen) {
+      // Only count bot messages as unread, not user messages or loading states
+      if (lastMessage.isBot && lastMessage.id !== lastReadMessageId && !isChatOpen) {
         setUnreadCount(prev => prev + 1);
       }
     }
@@ -397,20 +398,23 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
     <ChatContext.Provider value={contextValue}>
       {children}
       
-      {/* Floating Chat Bubble - Only show when authenticated */}
-      {isAuthenticated && (
-        <div className={`chat-bubble ${isChatOpen ? 'open' : ''}`} onClick={toggleChat}>
-          <div className="bubble-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H6L4 18V4H20V16Z" fill="currentColor"/>
-              <path d="M7 9H17V11H7V9ZM7 12H14V14H7V12Z" fill="currentColor"/>
-            </svg>
-          </div>
-          {unreadCount > 0 && (
-            <div className="bubble-badge">{unreadCount}</div>
-          )}
-        </div>
-      )}
+             {/* Floating Chat Bubble - Only show when authenticated */}
+       {isAuthenticated && (
+         <div className={`chat-bubble ${isChatOpen ? 'open' : ''}`} onClick={toggleChat}>
+           <div className="bubble-icon">
+             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+               <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H6L4 18V4H20V16Z" fill="currentColor"/>
+               <path d="M7 9H17V11H7V9ZM7 12H14V14H7V12Z" fill="currentColor"/>
+             </svg>
+           </div>
+           {isLoading && (
+             <div className="bubble-badge loading">...</div>
+           )}
+           {!isLoading && unreadCount > 0 && (
+             <div className="bubble-badge">{unreadCount}</div>
+           )}
+         </div>
+       )}
 
       {/* Chat Window - Only show when authenticated */}
       {isAuthenticated && (
