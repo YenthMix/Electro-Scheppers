@@ -57,14 +57,20 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
   // Ref for auto-scrolling to bottom
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Check if we're on the chat management page
-  const isOnChatBeherenPage = typeof window !== 'undefined' && window.location.pathname === '/chat-beheren';
-
   // Load chat settings from localStorage
   useEffect(() => {
     const savedSettings = localStorage.getItem('chatSettings');
     if (savedSettings) {
-      setChatSettings(JSON.parse(savedSettings));
+      const settings = JSON.parse(savedSettings);
+      setChatSettings(settings);
+      
+      // Update welcome message if it exists
+      if (settings.welcomeMessage && messages.length > 0 && messages[0].id === 'welcome-1') {
+        setMessages(prev => [
+          { ...prev[0], text: settings.welcomeMessage },
+          ...prev.slice(1)
+        ]);
+      }
     }
   }, []);
 
@@ -114,19 +120,6 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
       }
     }
   }, [messages, lastReadMessageId, isChatOpen]);
-
-  // Update welcome message when settings change
-  useEffect(() => {
-    if (chatSettings?.welcomeMessage && messages.length > 0) {
-      const firstMessage = messages[0];
-      if (firstMessage.id === 'welcome-1') {
-        setMessages(prev => [
-          { ...prev[0], text: chatSettings.welcomeMessage },
-          ...prev.slice(1)
-        ]);
-      }
-    }
-  }, [chatSettings?.welcomeMessage]);
 
   const initializeChatAPI = async () => {
     try {
@@ -419,69 +412,54 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
     sendMessage
   };
 
+    // Check if we're on the chat management page
+  const isOnChatBeherenPage = typeof window !== 'undefined' && window.location.pathname === '/chat-beheren';
+
   return (
     <ChatContext.Provider value={contextValue}>
       {children}
       
-             {/* Floating Chat Bubble - Only show when authenticated and not on chat management page */}
-       {isAuthenticated && !isOnChatBeherenPage && (
-         <div 
-           className={`chat-bubble ${isChatOpen ? 'open' : ''}`} 
-           onClick={toggleChat}
-           style={{
-             backgroundColor: chatSettings?.bubbleColor || '#de3f30',
-             color: chatSettings?.bubbleTextColor || '#ffffff'
-           }}
-         >
-           <div className="bubble-icon">
-             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-               <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H6L4 18V4H20V16Z" fill="currentColor"/>
-               <path d="M7 9H17V11H7V9ZM7 12H14V14H7V12Z" fill="currentColor"/>
-             </svg>
-           </div>
-           {isLoading && (
-             <div 
-               className="bubble-badge loading"
-               style={{
-                 backgroundColor: chatSettings?.secondaryColor || '#f4b928',
-                 color: chatSettings?.textColor || '#000000'
-               }}
-             >
-               ...
-             </div>
-           )}
-           {!isLoading && unreadCount > 0 && (
-             <div 
-               className="bubble-badge"
-               style={{
-                 backgroundColor: chatSettings?.secondaryColor || '#f4b928',
-                 color: chatSettings?.textColor || '#000000'
-               }}
-             >
-               {unreadCount}
-             </div>
-           )}
-         </div>
-       )}
+      {/* Floating Chat Bubble - Only show when authenticated and not on chat management page */}
+      {isAuthenticated && !isOnChatBeherenPage && (
+        <div 
+          className={`chat-bubble ${isChatOpen ? 'open' : ''}`} 
+          onClick={toggleChat}
+          style={{
+            backgroundColor: chatSettings?.bubbleColor || '#de3f30',
+            color: chatSettings?.bubbleTextColor || '#ffffff'
+          }}
+        >
+          <div className="bubble-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H6L4 18V4H20V16Z" fill="currentColor"/>
+              <path d="M7 9H17V11H7V9ZM7 12H14V14H7V12Z" fill="currentColor"/>
+            </svg>
+          </div>
+          {isLoading && (
+            <div className="bubble-badge loading">...</div>
+          )}
+          {!isLoading && unreadCount > 0 && (
+            <div className="bubble-badge">{unreadCount}</div>
+          )}
+        </div>
+      )}
 
-             {/* Chat Window - Only show when authenticated and not on chat management page */}
-       {isAuthenticated && !isOnChatBeherenPage && (
-         <div 
-           className={`chat-window ${isChatOpen ? 'open' : ''}`}
-           style={{
-             backgroundColor: chatSettings?.backgroundColor || '#ffffff',
-             color: chatSettings?.textColor || '#333333',
-             borderColor: chatSettings?.primaryColor || '#de3f30'
-           }}
-         >
-                 <div 
-           className="chat-header"
-           style={{
-             backgroundColor: chatSettings?.primaryColor || '#de3f30',
-             color: chatSettings?.bubbleTextColor || '#ffffff'
-           }}
-         >
-           <div className="chat-header-content">
+      {/* Chat Window - Only show when authenticated and not on chat management page */}
+      {isAuthenticated && !isOnChatBeherenPage && (
+        <div 
+          className={`chat-window ${isChatOpen ? 'open' : ''}`}
+          style={{
+            width: chatSettings?.chatWindowWidth || 480,
+            height: chatSettings?.chatWindowHeight || 600,
+            backgroundColor: chatSettings?.theme === 'dark' ? '#1a1a1a' : '#ffffff',
+            color: chatSettings?.theme === 'dark' ? '#ffffff' : '#333333'
+          }}
+        >
+        <div className="chat-header" style={{
+          backgroundColor: chatSettings?.bubbleColor || '#de3f30',
+          color: chatSettings?.bubbleTextColor || '#ffffff'
+        }}>
+          <div className="chat-header-content">
             <div className="chat-logo">
               <div className="logo-mark">
                 <div className="logo-s"></div>
@@ -492,7 +470,7 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
                 <span>SCHEPPERS</span>
               </div>
             </div>
-                         <div className="chat-title">{chatSettings?.botName || 'Saar'}</div>
+            <div className="chat-title">{chatSettings?.botName || 'Saar'}</div>
             <div className={`connection-status ${isConnected ? 'connected' : 'connecting'}`}>
               {isConnected ? '🟢 Verbonden' : '🟡 Verbinden...'}
             </div>
@@ -504,13 +482,28 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
           </button>
         </div>
         
-        <div className="chat-messages">
+        <div 
+          className="chat-messages"
+          style={{
+            backgroundColor: chatSettings?.theme === 'dark' ? '#2a2a2a' : '#f8f8f8'
+          }}
+        >
           {messages.map((message) => (
             <div 
               key={message.id} 
               className={`message ${message.isBot ? 'bot-message' : 'user-message'}`}
             >
-              <div className="message-content">
+              <div 
+                className="message-content"
+                style={{
+                  backgroundColor: message.isBot 
+                    ? (chatSettings?.theme === 'dark' ? '#3a3a3a' : '#ffffff')
+                    : (chatSettings?.bubbleColor || '#de3f30'),
+                  color: message.isBot 
+                    ? (chatSettings?.theme === 'dark' ? '#ffffff' : '#333333')
+                    : (chatSettings?.bubbleTextColor || '#ffffff')
+                }}
+              >
                 {message.text && <div className="message-text">{message.text}</div>}
                 {message.image && (
                   <div className="message-image">
@@ -546,7 +539,13 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
           <div ref={messagesEndRef} />
         </div>
         
-        <div className="chat-input">
+        <div 
+          className="chat-input"
+          style={{
+            backgroundColor: chatSettings?.theme === 'dark' ? '#1a1a1a' : '#ffffff',
+            borderTop: `1px solid ${chatSettings?.theme === 'dark' ? '#333333' : '#e0e0e0'}`
+          }}
+        >
           <input
             type="text"
             value={inputValue}
@@ -561,11 +560,20 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
             }
             className="message-input"
             disabled={isLoading || !isConnected}
+            style={{
+              backgroundColor: chatSettings?.theme === 'dark' ? '#2a2a2a' : '#f5f5f5',
+              color: chatSettings?.theme === 'dark' ? '#ffffff' : '#333333',
+              border: `1px solid ${chatSettings?.theme === 'dark' ? '#444444' : '#e0e0e0'}`
+            }}
           />
           <button 
             onClick={handleSendMessage} 
             className={`send-button ${isLoading ? 'loading' : ''}`}
             disabled={isLoading || !isConnected}
+            style={{
+              backgroundColor: chatSettings?.bubbleColor || '#de3f30',
+              color: chatSettings?.bubbleTextColor || '#ffffff'
+            }}
           >
             {!isConnected ? 'Verbinden...' : isLoading ? '...' : 'Versturen'}
           </button>
