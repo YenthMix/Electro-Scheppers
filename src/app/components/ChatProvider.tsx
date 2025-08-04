@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useRef, createContext, useContext } from 'react';
+import { useAuth } from './AuthProvider';
 
 // Load config from environment variables
 const N8N_WEBHOOK_URL = process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL || '';
@@ -19,6 +20,7 @@ interface ChatContextType {
   isConnected: boolean;
   isLoading: boolean;
   isChatOpen: boolean;
+  unreadCount: number;
   inputValue: string;
   setInputValue: (value: string) => void;
   toggleChat: () => void;
@@ -36,6 +38,7 @@ export const useChat = () => {
 };
 
 export default function ChatProvider({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
     { id: 'welcome-1', text: "Hallo! Hoe kan ik u vandaag helpen?", isBot: true }
   ]);
@@ -47,12 +50,31 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
   const [userKey, setUserKey] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [lastReadMessageId, setLastReadMessageId] = useState('welcome-1');
   
   // Ref for auto-scrolling to bottom
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Only initialize chat if user is authenticated
   useEffect(() => {
-    initializeChatAPI();
+    if (isAuthenticated) {
+      initializeChatAPI();
+    }
+  }, [isAuthenticated]);
+
+  // Auto-close chat when navigating to different pages
+  useEffect(() => {
+    const handleRouteChange = () => {
+      setIsChatOpen(false);
+    };
+
+    // Listen for route changes
+    window.addEventListener('popstate', handleRouteChange);
+    
+    return () => {
+      window.removeEventListener('popstate', handleRouteChange);
+    };
   }, []);
 
   // Auto-scroll to bottom when messages change
@@ -69,6 +91,16 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
     
     return () => cancelAnimationFrame(animationFrameId);
   }, [messages.length]);
+
+  // Update unread count when messages change
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage.id !== lastReadMessageId && !isChatOpen) {
+        setUnreadCount(prev => prev + 1);
+      }
+    }
+  }, [messages, lastReadMessageId, isChatOpen]);
 
   const initializeChatAPI = async () => {
     try {
@@ -338,6 +370,14 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
   };
 
   const toggleChat = () => {
+    if (!isChatOpen) {
+      // Opening chat - mark all messages as read
+      if (messages.length > 0) {
+        const lastMessage = messages[messages.length - 1];
+        setLastReadMessageId(lastMessage.id);
+        setUnreadCount(0);
+      }
+    }
     setIsChatOpen(!isChatOpen);
   };
 
@@ -346,6 +386,7 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
     isConnected,
     isLoading,
     isChatOpen,
+    unreadCount,
     inputValue,
     setInputValue,
     toggleChat,
@@ -356,19 +397,24 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
     <ChatContext.Provider value={contextValue}>
       {children}
       
-      {/* Floating Chat Bubble */}
-      <div className={`chat-bubble ${isChatOpen ? 'open' : ''}`} onClick={toggleChat}>
-        <div className="bubble-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H6L4 18V4H20V16Z" fill="currentColor"/>
-            <path d="M7 9H17V11H7V9ZM7 12H14V14H7V12Z" fill="currentColor"/>
-          </svg>
+      {/* Floating Chat Bubble - Only show when authenticated */}
+      {isAuthenticated && (
+        <div className={`chat-bubble ${isChatOpen ? 'open' : ''}`} onClick={toggleChat}>
+          <div className="bubble-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H6L4 18V4H20V16Z" fill="currentColor"/>
+              <path d="M7 9H17V11H7V9ZM7 12H14V14H7V12Z" fill="currentColor"/>
+            </svg>
+          </div>
+          {unreadCount > 0 && (
+            <div className="bubble-badge">{unreadCount}</div>
+          )}
         </div>
-        <div className="bubble-badge">1</div>
-      </div>
+      )}
 
-      {/* Chat Window */}
-      <div className={`chat-window ${isChatOpen ? 'open' : ''}`}>
+      {/* Chat Window - Only show when authenticated */}
+      {isAuthenticated && (
+        <div className={`chat-window ${isChatOpen ? 'open' : ''}`}>
         <div className="chat-header">
           <div className="chat-header-content">
             <div className="chat-logo">
@@ -460,6 +506,7 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
           </button>
         </div>
       </div>
+      )}
     </ChatContext.Provider>
   );
 } 
