@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from './AuthProvider';
 
 export default function LoginPage() {
@@ -7,25 +7,95 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login, isBackendConnected, isCheckingBackend } = useAuth();
+  const [isCheckingBackend, setIsCheckingBackend] = useState(true);
+  const [backendStatus, setBackendStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking');
+  const { login } = useAuth();
+
+  // Check backend connection on component mount
+  useEffect(() => {
+    checkBackendConnection();
+  }, []);
+
+  const checkBackendConnection = async () => {
+    setBackendStatus('checking');
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'}/health`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (response.ok) {
+        setBackendStatus('connected');
+        setIsCheckingBackend(false);
+      } else {
+        throw new Error('Backend not responding');
+      }
+    } catch (error) {
+      setBackendStatus('disconnected');
+      // Retry after 3 seconds
+      setTimeout(checkBackendConnection, 3000);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    try {
-      const success = await login(usernameOrEmail, password);
-      
-      if (!success) {
-        setError('Ongeldige gebruikersnaam/email of wachtwoord');
-      }
-    } catch (error) {
-      setError('Kan geen verbinding maken met de server. Probeer het opnieuw.');
+    // Simulate loading delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const success = login(usernameOrEmail, password);
+    
+    if (!success) {
+      setError('Ongeldige gebruikersnaam/email of wachtwoord');
     }
     
     setIsLoading(false);
   };
+
+  // Show loading screen while checking backend
+  if (isCheckingBackend) {
+    return (
+      <div className="login-container">
+        <div className="login-content">
+          <div className="login-header">
+            <div className="login-logo">
+              <div className="logo-mark">
+                <div className="logo-s"></div>
+                <div className="logo-square"></div>
+              </div>
+              <div className="logo-text">
+                <span>ELEKTRO</span>
+                <span>SCHEPPERS</span>
+              </div>
+            </div>
+            <h1>Verbinden...</h1>
+            <p>Bezig met verbinden met de server</p>
+          </div>
+
+          <div className="backend-status-container">
+            <div className={`backend-status ${backendStatus}`}>
+              {backendStatus === 'checking' && (
+                <>
+                  <div className="loading-spinner"></div>
+                  <p>Controleren van serververbinding...</p>
+                </>
+              )}
+              {backendStatus === 'disconnected' && (
+                <>
+                  <div className="error-icon">⚠️</div>
+                  <p>Server niet bereikbaar. Opnieuw proberen...</p>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="login-container">
@@ -78,30 +148,12 @@ export default function LoginPage() {
             </div>
           )}
 
-          {isCheckingBackend && (
-            <div className="backend-status checking">
-              🔄 Verbinden met server...
-            </div>
-          )}
-          
-          {!isCheckingBackend && !isBackendConnected && (
-            <div className="backend-status disconnected">
-              ❌ Geen verbinding met server
-            </div>
-          )}
-          
-          {!isCheckingBackend && isBackendConnected && (
-            <div className="backend-status connected">
-              ✅ Verbonden met server
-            </div>
-          )}
-
           <button 
             type="submit" 
             className="login-button"
-            disabled={isLoading || isCheckingBackend || !isBackendConnected}
+            disabled={isLoading}
           >
-            {isLoading ? 'Inloggen...' : isCheckingBackend ? 'Verbinden...' : 'Inloggen'}
+            {isLoading ? 'Inloggen...' : 'Inloggen'}
           </button>
         </form>
       </div>
