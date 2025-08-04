@@ -10,6 +10,10 @@ export default function AdminDashboard() {
     router.push('/info');
   };
 
+  const handleChatBeheren = () => {
+    router.push('/chat-beheren');
+  };
+
   const handleLogout = () => {
     logout();
   };
@@ -46,7 +50,7 @@ export default function AdminDashboard() {
             <div className="card-icon">💬</div>
             <h3>Chat Support</h3>
             <p>Bekijk en beheer chat conversaties</p>
-            <button className="action-button secondary">
+            <button onClick={handleChatBeheren} className="action-button secondary">
               Chat Beheren
             </button>
           </div>

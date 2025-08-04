@@ -39,6 +39,7 @@ export const useChat = () => {
 
 export default function ChatProvider({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
+  const [isOnChatPage, setIsOnChatPage] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     { id: 'welcome-1', text: "Hallo! Hoe kan ik u vandaag helpen?", isBot: true }
   ]);
@@ -55,6 +56,12 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
   
   // Ref for auto-scrolling to bottom
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Check if we're on the chat management page
+  useEffect(() => {
+    const path = window.location.pathname;
+    setIsOnChatPage(path === '/chat-beheren');
+  }, []);
 
   // Only initialize chat if user is authenticated
   useEffect(() => {
@@ -398,8 +405,8 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
     <ChatContext.Provider value={contextValue}>
       {children}
       
-             {/* Floating Chat Bubble - Only show when authenticated */}
-       {isAuthenticated && (
+             {/* Floating Chat Bubble - Only show when authenticated and not on chat page */}
+       {isAuthenticated && !isOnChatPage && (
          <div className={`chat-bubble ${isChatOpen ? 'open' : ''}`} onClick={toggleChat}>
            <div className="bubble-icon">
              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -416,9 +423,9 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
          </div>
        )}
 
-      {/* Chat Window - Only show when authenticated */}
-      {isAuthenticated && (
-        <div className={`chat-window ${isChatOpen ? 'open' : ''}`}>
+             {/* Chat Window - Show when authenticated and either chat is open or on chat page */}
+       {isAuthenticated && (isChatOpen || isOnChatPage) && (
+         <div className={`chat-window ${isChatOpen || isOnChatPage ? 'open' : ''} ${isOnChatPage ? 'chat-page-mode' : ''}`}>
         <div className="chat-header">
           <div className="chat-header-content">
             <div className="chat-logo">
