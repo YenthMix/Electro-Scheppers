@@ -746,12 +746,12 @@ body {
 }
 
 .action-button.secondary {
-  background: #c63528;
+  background: #de3f30;
   color: #000000;
 }
 
 .action-button.secondary:hover {
-  background: #e6a71f;
+  background: #c63528;
 }
 
 /* User Dashboard styles */

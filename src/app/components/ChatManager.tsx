@@ -29,9 +29,22 @@ const defaultSettings: ChatSettings = {
 
 export default function ChatManager() {
   const { user, logout } = useAuth();
-  const { messages, sendMessage, inputValue, setInputValue, handleSendMessage, handleKeyPress } = useChat();
+  const { messages, inputValue, setInputValue, sendMessage } = useChat();
   const [settings, setSettings] = useState<ChatSettings>(defaultSettings);
   const [isEditing, setIsEditing] = useState(false);
+
+  const handleSendMessage = async () => {
+    if (!inputValue.trim()) return;
+    const message = inputValue.trim();
+    setInputValue('');
+    await sendMessage(message);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSendMessage();
+    }
+  };
 
   // Load settings from localStorage on component mount
   useEffect(() => {
