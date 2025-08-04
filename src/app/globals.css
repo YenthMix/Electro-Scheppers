@@ -847,6 +847,34 @@ body {
 
 
 
+/* Admin welcome section */
+.admin-welcome {
+  text-align: center;
+  margin: 20px 0 40px 0;
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  border: 2px solid #de3f30;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.admin-welcome h1 {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  color: #de3f30;
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.admin-welcome p {
+  font-family: 'Open Sans', sans-serif;
+  color: #666;
+  font-size: 1.1rem;
+}
+
 /* Chat Beheren Page styles */
 .chat-beheren-container {
   min-height: 100vh;
@@ -856,16 +884,21 @@ body {
 }
 
 .back-button {
-  background: rgba(255, 255, 255, 0.1);
+  position: fixed;
+  top: 30px;
+  left: 30px;
+  background: #de3f30;
   color: #ffffff;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  padding: 12px 20px;
-  border-radius: 25px;
-  font-size: 14px;
+  border: none;
+  padding: 15px 25px;
+  border-radius: 30px;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   font-family: 'Montserrat', sans-serif;
+  z-index: 1000;
+  box-shadow: 0 4px 15px rgba(222, 63, 48, 0.3);
   text-decoration: none;
   display: flex;
   align-items: center;
@@ -873,9 +906,9 @@ body {
 }
 
 .back-button:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.5);
+  background: #c63528;
   transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(222, 63, 48, 0.4);
 }
 
 .chat-beheren-header {

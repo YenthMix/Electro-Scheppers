@@ -130,19 +130,16 @@ export default function ChatBeherenPage() {
 
   return (
     <div className="chat-beheren-container">
-      <div className="chat-beheren-header">
-        <div className="header-content">
-          <div className="welcome-section">
-            <h1>Chat Beheren</h1>
-            <p>Pas de stijl en instellingen van de chatbot aan</p>
-          </div>
-          <button 
-            onClick={handleBackToDashboard}
-            className="back-button"
-          >
-            ← Terug naar Dashboard
-          </button>
-        </div>
+      <button 
+        onClick={handleBackToDashboard}
+        className="back-button"
+      >
+        ← Terug naar Dashboard
+      </button>
+
+      <div className="admin-welcome">
+        <h1>Chat Beheren</h1>
+        <p>Pas de stijl en instellingen van de chatbot aan</p>
       </div>
 
       <div className="chat-beheren-content">
