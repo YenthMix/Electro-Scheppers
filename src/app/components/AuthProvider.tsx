@@ -20,15 +20,15 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Mock user database
 const USERS = [
   {
-    username: process.env.USERNAME,
-    password: process.env.PASSWORD,
-    email: process.env.EMAIL,
+    username: process.env.NEXT_PUBLIC_USERNAME,
+    password: process.env.NEXT_PUBLIC_PASSWORD,
+    email: process.env.NEXT_PUBLIC_EMAIL,
     role: 'admin' as const
   },
   {
-    username: process.env.USERNAME2,
-    password: process.env.PASSWORD2,
-    email: process.env.EMAIL2,
+    username: process.env.NEXT_PUBLIC_USERNAME2,
+    password: process.env.NEXT_PUBLIC_PASSWORD2,
+    email: process.env.NEXT_PUBLIC_EMAIL2,
     role: 'user' as const
   }
 ];
