@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from './AuthProvider';
 
 export default function LoginPage() {
@@ -7,95 +7,40 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isCheckingBackend, setIsCheckingBackend] = useState(true);
-  const [backendStatus, setBackendStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking');
   const { login } = useAuth();
-
-  // Check backend connection on component mount
-  useEffect(() => {
-    checkBackendConnection();
-  }, []);
-
-  const checkBackendConnection = async () => {
-    setBackendStatus('checking');
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'}/health`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-      
-      if (response.ok) {
-        setBackendStatus('connected');
-        setIsCheckingBackend(false);
-      } else {
-        throw new Error('Backend not responding');
-      }
-    } catch (error) {
-      setBackendStatus('disconnected');
-      // Retry after 3 seconds
-      setTimeout(checkBackendConnection, 3000);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    // Simulate loading delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    try {
+      // First check if backend is connected
+      const backendResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'}/health`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
 
-    const success = login(usernameOrEmail, password);
-    
-    if (!success) {
-      setError('Ongeldige gebruikersnaam/email of wachtwoord');
+      if (!backendResponse.ok) {
+        throw new Error('Backend connection failed');
+      }
+
+      // Backend is connected, proceed with login
+      const success = login(usernameOrEmail, password);
+      
+      if (!success) {
+        setError('Ongeldige gebruikersnaam/email of wachtwoord');
+      }
+      
+    } catch (error) {
+      console.error('Backend connection error:', error);
+      setError('Kan geen verbinding maken met de server. Controleer uw internetverbinding en probeer het opnieuw.');
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
-
-  // Show loading screen while checking backend
-  if (isCheckingBackend) {
-    return (
-      <div className="login-container">
-        <div className="login-content">
-          <div className="login-header">
-            <div className="login-logo">
-              <div className="logo-mark">
-                <div className="logo-s"></div>
-                <div className="logo-square"></div>
-              </div>
-              <div className="logo-text">
-                <span>ELEKTRO</span>
-                <span>SCHEPPERS</span>
-              </div>
-            </div>
-            <h1>Verbinden...</h1>
-            <p>Bezig met verbinden met de server</p>
-          </div>
-
-          <div className="backend-status-container">
-            <div className={`backend-status ${backendStatus}`}>
-              {backendStatus === 'checking' && (
-                <>
-                  <div className="loading-spinner"></div>
-                  <p>Controleren van serververbinding...</p>
-                </>
-              )}
-              {backendStatus === 'disconnected' && (
-                <>
-                  <div className="error-icon">⚠️</div>
-                  <p>Server niet bereikbaar. Opnieuw proberen...</p>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="login-container">
