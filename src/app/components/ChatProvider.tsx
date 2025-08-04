@@ -456,10 +456,36 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
   const [isOnChatBeherenPage, setIsOnChatBeherenPage] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setIsOnChatBeherenPage(window.location.pathname === '/chat-beheren');
-    }
-  }, []);
+    const checkPath = () => {
+      if (typeof window !== 'undefined') {
+        const isOnChatBeheren = window.location.pathname === '/chat-beheren';
+        setIsOnChatBeherenPage(isOnChatBeheren);
+        
+        // Close chat window when on chat management page
+        if (isOnChatBeheren && isChatOpen) {
+          setIsChatOpen(false);
+        }
+      }
+    };
+
+    // Check on mount
+    checkPath();
+
+    // Listen for route changes
+    const handleRouteChange = () => {
+      checkPath();
+    };
+
+    window.addEventListener('popstate', handleRouteChange);
+    
+    // Also check periodically for route changes (for Next.js client-side routing)
+    const interval = setInterval(checkPath, 100);
+
+    return () => {
+      window.removeEventListener('popstate', handleRouteChange);
+      clearInterval(interval);
+    };
+  }, [isChatOpen]);
 
   return (
     <ChatContext.Provider value={contextValue}>
