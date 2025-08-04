@@ -7,45 +7,27 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login, isConnecting } = useAuth();
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    try {
-      const success = await login(usernameOrEmail, password);
-      
-      if (!success) {
-        setError('Ongeldige gebruikersnaam/email of wachtwoord of backend niet bereikbaar');
-      }
-    } catch (error) {
-      setError('Er is een probleem opgetreden bij het inloggen. Probeer het opnieuw.');
-    } finally {
-      setIsLoading(false);
+    // Simulate loading delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const success = login(usernameOrEmail, password);
+    
+    if (!success) {
+      setError('Ongeldige gebruikersnaam/email of wachtwoord');
     }
+    
+    setIsLoading(false);
   };
 
   return (
     <div className="login-container">
-      {isConnecting && (
-        <div className="connecting-overlay">
-          <div className="connecting-content">
-            <div className="connecting-spinner">
-              <div className="spinner"></div>
-            </div>
-            <h2>Verbinden met Backend</h2>
-            <p>Bezig met het controleren van de serververbinding...</p>
-            <div className="connecting-steps">
-              <div className="step">🔍 Controleren van backend verbinding</div>
-              <div className="step">🔄 Retry pogingen indien nodig</div>
-              <div className="step">✅ Verbinding tot stand gebracht</div>
-            </div>
-          </div>
-        </div>
-      )}
-      
       <div className="login-content">
         <div className="login-header">
           <div className="login-logo">
@@ -98,9 +80,9 @@ export default function LoginPage() {
           <button 
             type="submit" 
             className="login-button"
-            disabled={isLoading || isConnecting}
+            disabled={isLoading}
           >
-            {isConnecting ? 'Verbinden met Backend...' : isLoading ? 'Inloggen...' : 'Inloggen'}
+            {isLoading ? 'Inloggen...' : 'Inloggen'}
           </button>
         </form>
       </div>
