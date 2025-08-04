@@ -109,19 +109,16 @@ export default function InfoPage() {
 
   return (
     <div className="upload-container">
-      <div className="dashboard-header">
-        <div className="header-content">
-          <div className="welcome-section">
-            <h1>Welkom Admin</h1>
-            <p>Beheer documenten voor de Elektro Scheppers knowledge base</p>
-          </div>
-          <button 
-            onClick={handleBackToHome}
-            className="back-button"
-          >
-            ← Terug naar Dashboard
-          </button>
-        </div>
+      <button 
+        onClick={handleBackToHome}
+        className="back-button"
+      >
+        ← Terug naar Dashboard
+      </button>
+
+      <div className="admin-welcome">
+        <h1>Upload Documenten</h1>
+        <p>Beheer documenten voor de Elektro Scheppers knowledge base</p>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'row', gap: 40, alignItems: 'flex-start', justifyContent: 'center', width: '100%' }}>
