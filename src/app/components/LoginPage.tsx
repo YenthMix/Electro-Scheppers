@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useAuth } from './AuthProvider';
 
 export default function LoginPage() {
-  const [username, setUsername] = useState('');
+  const [usernameOrEmail, setUsernameOrEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -17,10 +17,10 @@ export default function LoginPage() {
     // Simulate loading delay
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    const success = login(username, password);
+    const success = login(usernameOrEmail, password);
     
     if (!success) {
-      setError('Ongeldige gebruikersnaam of wachtwoord');
+      setError('Ongeldige gebruikersnaam/email of wachtwoord');
     }
     
     setIsLoading(false);
@@ -46,12 +46,12 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
-            <label htmlFor="username">Gebruikersnaam / Email</label>
+            <label htmlFor="usernameOrEmail">Gebruikersnaam of Email</label>
             <input
               type="text"
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              id="usernameOrEmail"
+              value={usernameOrEmail}
+              onChange={(e) => setUsernameOrEmail(e.target.value)}
               placeholder="Voer uw gebruikersnaam of email in"
               required
               disabled={isLoading}

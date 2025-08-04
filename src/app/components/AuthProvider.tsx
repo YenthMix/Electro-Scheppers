@@ -4,12 +4,13 @@ import { createContext, useContext, useState, useEffect } from 'react';
 interface User {
   username: string;
   email: string;
+  password: string;
   role: 'admin' | 'user';
 }
 
 interface AuthContextType {
   user: User | null;
-  login: (username: string, password: string) => boolean;
+  login: (usernameOrEmail: string, password: string) => boolean;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -51,14 +52,15 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     }
   }, []);
 
-  const login = (username: string, password: string): boolean => {
+  const login = (usernameOrEmail: string, password: string): boolean => {
     const foundUser = USERS.find(
-      u => u.username === username && u.password === password
+      u => (u.username === usernameOrEmail || u.email === usernameOrEmail) && u.password === password
     );
     
-    if (foundUser && foundUser.username && foundUser.email) {
+    if (foundUser && foundUser.username && foundUser.email && foundUser.password) {
       const userWithoutPassword = {
         username: foundUser.username,
+        password: foundUser.password,
         email: foundUser.email,
         role: foundUser.role
       };
