@@ -74,6 +74,46 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
     }
   }, []);
 
+  // Listen for storage changes and custom events to update settings in real-time
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'chatSettings' && e.newValue) {
+        const settings = JSON.parse(e.newValue);
+        setChatSettings(settings);
+        
+        // Update welcome message if it exists
+        if (settings.welcomeMessage && messages.length > 0 && messages[0].id === 'welcome-1') {
+          setMessages(prev => [
+            { ...prev[0], text: settings.welcomeMessage },
+            ...prev.slice(1)
+          ]);
+        }
+      }
+    };
+
+    const handleCustomStorageChange = (e: CustomEvent) => {
+      if (e.detail && e.detail.settings) {
+        setChatSettings(e.detail.settings);
+        
+        // Update welcome message if it exists
+        if (e.detail.settings.welcomeMessage && messages.length > 0 && messages[0].id === 'welcome-1') {
+          setMessages(prev => [
+            { ...prev[0], text: e.detail.settings.welcomeMessage },
+            ...prev.slice(1)
+          ]);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('chatSettingsChanged', handleCustomStorageChange as EventListener);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('chatSettingsChanged', handleCustomStorageChange as EventListener);
+    };
+  }, [messages]);
+
   // Only initialize chat if user is authenticated
   useEffect(() => {
     if (isAuthenticated) {
@@ -413,7 +453,13 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
   };
 
     // Check if we're on the chat management page
-  const isOnChatBeherenPage = typeof window !== 'undefined' && window.location.pathname === '/chat-beheren';
+  const [isOnChatBeherenPage, setIsOnChatBeherenPage] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsOnChatBeherenPage(window.location.pathname === '/chat-beheren');
+    }
+  }, []);
 
   return (
     <ChatContext.Provider value={contextValue}>
