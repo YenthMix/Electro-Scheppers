@@ -845,31 +845,7 @@ body {
   }
 }
 
-/* Admin welcome section */
-.admin-welcome {
-  text-align: center;
-  margin: 20px 0 40px 0;
-  padding: 20px;
-  background: #ffffff;
-  border-radius: 15px;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-  border: 2px solid #de3f30;
-  max-width: 600px;
-}
 
-.admin-welcome h1 {
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 700;
-  color: #de3f30;
-  font-size: 2rem;
-  margin-bottom: 10px;
-}
-
-.admin-welcome p {
-  font-family: 'Open Sans', sans-serif;
-  color: #666;
-  font-size: 1.1rem;
-}
 
 /* Chat Beheren Page styles */
 .chat-beheren-container {
@@ -986,6 +962,14 @@ body {
   font-family: 'Open Sans', sans-serif;
   transition: all 0.3s ease;
   background: #ffffff;
+  box-sizing: border-box;
+}
+
+.setting-group textarea {
+  resize: vertical;
+  min-height: 80px;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
 .setting-group input:focus,
@@ -1386,30 +1370,4 @@ body {
   border: 1px solid #2196f3;
 }
 
-.back-button {
-  background: #de3f30;
-  color: #ffffff;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 25px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  z-index: 1000;
-  box-shadow: 0 4px 12px rgba(222, 63, 48, 0.3);
-  font-family: 'Montserrat', sans-serif;
-}
 
-.back-button:hover {
-  background: #c63528;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(222, 63, 48, 0.4);
-}
-
-.back-button:active {
-  transform: translateY(0);
-}

@@ -565,17 +565,18 @@ export default function ChatProvider({ children }: { children: React.ReactNode }
               key={message.id} 
               className={`message ${message.isBot ? 'bot-message' : 'user-message'}`}
             >
-              <div 
-                className="message-content"
-                style={{
-                  backgroundColor: message.isBot 
-                    ? (chatSettings?.theme === 'dark' ? '#3a3a3a' : '#ffffff')
-                    : (chatSettings?.bubbleColor || '#de3f30'),
-                  color: message.isBot 
-                    ? (chatSettings?.theme === 'dark' ? '#ffffff' : '#333333')
-                    : (chatSettings?.bubbleTextColor || '#ffffff')
-                }}
-              >
+                              <div 
+                  className="message-content"
+                  style={{
+                    backgroundColor: message.isBot 
+                      ? (chatSettings?.theme === 'dark' ? '#3a3a3a' : '#ffffff')
+                      : (chatSettings?.bubbleColor || '#de3f30'),
+                    color: message.isBot 
+                      ? (chatSettings?.theme === 'dark' ? '#ffffff' : '#333333')
+                      : (chatSettings?.bubbleTextColor || '#ffffff'),
+                    fontFamily: chatSettings?.fontFamily || 'Open Sans'
+                  }}
+                >
                 {message.text && <div className="message-text">{message.text}</div>}
                 {message.image && (
                   <div className="message-image">

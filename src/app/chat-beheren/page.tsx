@@ -13,6 +13,7 @@ interface ChatSettings {
   welcomeMessage: string;
   chatWindowWidth: number;
   chatWindowHeight: number;
+  fontFamily: string;
 }
 
 const defaultSettings: ChatSettings = {
@@ -24,7 +25,8 @@ const defaultSettings: ChatSettings = {
   theme: 'light',
   welcomeMessage: 'Hallo! Hoe kan ik u vandaag helpen?',
   chatWindowWidth: 480,
-  chatWindowHeight: 600
+  chatWindowHeight: 600,
+  fontFamily: 'Open Sans'
 };
 
 export default function ChatBeherenPage() {
@@ -68,6 +70,7 @@ export default function ChatBeherenPage() {
     root.style.setProperty('--chat-text-color', settings.chatTextColor);
     root.style.setProperty('--chat-window-width', `${settings.chatWindowWidth}px`);
     root.style.setProperty('--chat-window-height', `${settings.chatWindowHeight}px`);
+    root.style.setProperty('--chat-font-family', settings.fontFamily);
     
     // Apply theme
     if (settings.theme === 'dark') {
@@ -217,6 +220,29 @@ export default function ChatBeherenPage() {
             </div>
 
             <div className="setting-group">
+              <label>Lettertype</label>
+              <select
+                value={settings.fontFamily}
+                onChange={(e) => handleSettingChange('fontFamily', e.target.value)}
+              >
+                <option value="Open Sans">Open Sans (Standaard)</option>
+                <option value="Roboto">Roboto</option>
+                <option value="Lato">Lato</option>
+                <option value="Montserrat">Montserrat</option>
+                <option value="Poppins">Poppins</option>
+                <option value="Inter">Inter</option>
+                <option value="Source Sans Pro">Source Sans Pro</option>
+                <option value="Nunito">Nunito</option>
+                <option value="Ubuntu">Ubuntu</option>
+                <option value="Noto Sans">Noto Sans</option>
+                <option value="Arial">Arial</option>
+                <option value="Helvetica">Helvetica</option>
+                <option value="Georgia">Georgia</option>
+                <option value="Times New Roman">Times New Roman</option>
+              </select>
+            </div>
+
+            <div className="setting-group">
               <label>Chat Window Breedte (px)</label>
               <input
                 type="number"
@@ -281,18 +307,19 @@ export default function ChatBeherenPage() {
               <div className="preview-connection-status">🟢 Verbonden</div>
             </div>
             
-            <div className="preview-chat-messages" style={{
-              backgroundColor: settings.theme === 'dark' ? '#2a2a2a' : '#f8f8f8'
-            }}>
-              <div className="preview-message">
-                <div className="preview-message-content bot-message" style={{
-                  backgroundColor: settings.theme === 'dark' ? '#3a3a3a' : '#ffffff',
-                  color: settings.theme === 'dark' ? '#ffffff' : '#333333'
-                }}>
-                  {settings.welcomeMessage}
-                </div>
-              </div>
-            </div>
+                         <div className="preview-chat-messages" style={{
+               backgroundColor: settings.theme === 'dark' ? '#2a2a2a' : '#f8f8f8'
+             }}>
+               <div className="preview-message">
+                 <div className="preview-message-content bot-message" style={{
+                   backgroundColor: settings.theme === 'dark' ? '#3a3a3a' : '#ffffff',
+                   color: settings.theme === 'dark' ? '#ffffff' : '#333333',
+                   fontFamily: settings.fontFamily
+                 }}>
+                   {settings.welcomeMessage}
+                 </div>
+               </div>
+             </div>
             
             <div className="preview-chat-input" style={{
               backgroundColor: settings.theme === 'dark' ? '#1a1a1a' : '#ffffff',
