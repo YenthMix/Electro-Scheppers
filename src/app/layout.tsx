@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import "./globals.css";
 import AuthProvider from "./components/AuthProvider";
 import ChatProvider from "./components/ChatProvider";
-import BackendStatusChecker from "./components/BackendStatusChecker";
 
 export const metadata: Metadata = {
   title: "Elektro Scheppers - Login",
@@ -20,7 +19,6 @@ export default function RootLayout({
         <AuthProvider>
           <ChatProvider>
             {children}
-            <BackendStatusChecker />
           </ChatProvider>
         </AuthProvider>
       </body>

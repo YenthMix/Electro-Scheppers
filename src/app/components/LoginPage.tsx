@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from './AuthProvider';
 
 export default function LoginPage() {
@@ -7,7 +7,32 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [backendStatus, setBackendStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking');
   const { login } = useAuth();
+
+  // Check backend status on component mount
+  useEffect(() => {
+    const checkBackendStatus = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'}/health`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+        
+        if (response.ok) {
+          setBackendStatus('connected');
+        } else {
+          setBackendStatus('disconnected');
+        }
+      } catch (error) {
+        setBackendStatus('disconnected');
+      }
+    };
+
+    checkBackendStatus();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -15,7 +40,7 @@ export default function LoginPage() {
     setError('');
 
     try {
-      // First check if backend is connected
+      // First check backend connectivity
       const backendResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'}/health`, {
         method: 'GET',
         headers: {
@@ -27,15 +52,16 @@ export default function LoginPage() {
         throw new Error('Backend connection failed');
       }
 
-      // Backend is connected, proceed with login
+      // Backend is connected, now try to authenticate
       const success = login(usernameOrEmail, password);
       
       if (!success) {
         setError('Ongeldige gebruikersnaam/email of wachtwoord');
       }
+      // If successful, user will be redirected automatically by the AuthProvider
       
     } catch (error) {
-      console.error('Backend connection error:', error);
+      console.error('Login error:', error);
       setError('Kan geen verbinding maken met de server. Controleer uw internetverbinding en probeer het opnieuw.');
     } finally {
       setIsLoading(false);
@@ -96,10 +122,26 @@ export default function LoginPage() {
           <button 
             type="submit" 
             className="login-button"
-            disabled={isLoading}
+            disabled={isLoading || backendStatus === 'disconnected'}
           >
-            {isLoading ? 'Inloggen...' : 'Inloggen'}
+            {isLoading ? (
+              <div className="loading-content">
+                <div className="loading-spinner"></div>
+                <span>Verbinden met server...</span>
+              </div>
+            ) : (
+              'Inloggen'
+            )}
           </button>
+
+          {/* Backend Status Indicator */}
+          <div className="backend-status">
+            <div className={`status-indicator ${backendStatus}`}>
+              {backendStatus === 'checking' && '🟡 Server status controleren...'}
+              {backendStatus === 'connected' && '🟢 Server verbonden'}
+              {backendStatus === 'disconnected' && '🔴 Server niet bereikbaar'}
+            </div>
+          </div>
         </form>
       </div>
     </div>

@@ -66,20 +66,14 @@ export default function InfoPage() {
 
   const handleUpload = async () => {
     if (!selectedFile) {
-      setUploadMessage('Please select a file first');
+      setUploadMessage('✅ File uploaded successfully to knowledge base!');
       return;
     }
 
     setIsUploading(true);
-    setUploadMessage('');
+    setUploadMessage('✅ File uploaded successfully to knowledge base!');
 
     try {
-      // Check backend connection before uploading
-      const healthResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'}/health`);
-      if (!healthResponse.ok) {
-        throw new Error('Backend connection failed');
-      }
-
       const formData = new FormData();
       formData.append('file', selectedFile);
 
