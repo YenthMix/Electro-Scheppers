@@ -1,30 +1,19 @@
 'use client';
-import { useRouter } from 'next/navigation';
+import { useAuth } from './components/AuthProvider';
+import LoginPage from './components/LoginPage';
+import AdminDashboard from './components/AdminDashboard';
+import UserDashboard from './components/UserDashboard';
 
 export default function Home() {
-  const router = useRouter();
+  const { user, isAuthenticated } = useAuth();
 
-  const handleNavigateToInfo = () => {
-    router.push('/info');
-  };
+  if (!isAuthenticated) {
+    return <LoginPage />;
+  }
 
-  return (
-    <div className="elektro-scheppers-home">
-      <div className="home-content">
-        <div className="welcome-section">
-          <h1>Welkom bij Elektro Scheppers</h1>
-          <p>Uw partner voor professionele elektrotechnische oplossingen</p>
-        </div>
-        
-        <div className="action-buttons">
-          <button 
-            onClick={handleNavigateToInfo}
-            className="info-button-home"
-          >
-            Upload Documenten
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  if (user?.role === 'admin') {
+    return <AdminDashboard />;
+  }
+
+  return <UserDashboard />;
 }

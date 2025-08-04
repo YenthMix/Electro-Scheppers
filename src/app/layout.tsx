@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import AuthProvider from "./components/AuthProvider";
 import ChatProvider from "./components/ChatProvider";
 
 export const metadata: Metadata = {
-  title: "Elektro Scheppers - Chat Support",
-  description: "Chat met Saar van Elektro Scheppers",
+  title: "Elektro Scheppers - Login",
+  description: "Login voor Elektro Scheppers systeem",
 };
 
 export default function RootLayout({
@@ -15,9 +16,11 @@ export default function RootLayout({
   return (
     <html lang="nl">
       <body className="antialiased">
-        <ChatProvider>
-          {children}
-        </ChatProvider>
+        <AuthProvider>
+          <ChatProvider>
+            {children}
+          </ChatProvider>
+        </AuthProvider>
       </body>
     </html>
   );

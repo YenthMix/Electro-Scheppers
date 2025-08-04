@@ -1,10 +1,11 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../components/AuthProvider';
 
 export default function InfoPage() {
   const router = useRouter();
+  const { user, isAuthenticated } = useAuth();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState('');
@@ -12,6 +13,23 @@ export default function InfoPage() {
   const [loadingDocs, setLoadingDocs] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Check if user is admin
+  if (!isAuthenticated || user?.role !== 'admin') {
+    router.push('/');
+    return (
+      <div className="dashboard-container">
+        <div className="dashboard-header">
+          <div className="header-content">
+            <div className="welcome-section">
+              <h1>Toegang Geweigerd</h1>
+              <p>U heeft geen toestemming om deze pagina te bekijken</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const fetchDocuments = async () => {
     setLoadingDocs(true);
@@ -95,8 +113,13 @@ export default function InfoPage() {
         onClick={handleBackToHome}
         className="back-button"
       >
-        ← Terug naar Home
+        ← Terug naar Dashboard
       </button>
+
+      <div className="admin-welcome">
+        <h1>Welkom Admin</h1>
+        <p>Beheer documenten voor de Elektro Scheppers knowledge base</p>
+      </div>
 
       <div style={{ display: 'flex', flexDirection: 'row', gap: 40, alignItems: 'flex-start', justifyContent: 'center', width: '100%' }}>
         <div className="upload-content">
